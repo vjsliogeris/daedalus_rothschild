@@ -14,5 +14,3 @@ e.g.
 `#!q $n$` for the next $n$ songs in the queue (i.e. `#!q 20` for the next 20 songs)
 
 `#!skip` to skip.
-
-I live on https://github.com/vjsliogeris/daedalus_mozart

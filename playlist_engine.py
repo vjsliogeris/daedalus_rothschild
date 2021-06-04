@@ -49,8 +49,9 @@ class playlist_engine():
         print(new_song_fname)
         already_in = False
         for s in self.songs:
-            s_eless = s.split(".")[:-1][0]
-            if s_eless == new_song_fname:
+            s_eless = ''.join([x + "." for x in s.split(".")[:-1]])[:-1]
+            #s_eless = s.split(".")[:-1][0]
+            if s_eless == new_song_fname.replace("?",""):
                 already_in = True
         print(already_in)
         #If not - download
@@ -60,13 +61,15 @@ class playlist_engine():
                 return "The song is too long."
             ydl.download([query])
 
+
         #Add it to play next
         songlist_new = [f.path[len(self.asset_folder_name)+1:]  for f in os.scandir(self.asset_folder_name)]
         for s in songlist_new:
-            s_eless = s.split(".")[:-1][0]
-            if s_eless == name:
+            s_eless = ''.join([x + "." for x in s.split(".")[:-1]])[:-1]
+            if s_eless == name.replace("?",""):
                 new_song_fname = s
                 break
+        print(new_song_fname)
         self.songs = [new_song_fname] + self.songs
         return "Done."
 
