@@ -17,10 +17,8 @@ period = 1
 class Daedalus(discord.Client):
 
     async def on_ready(self):
-        self.current_song = None
         self.prefix = "#!"
         self.playlist_engine = playlist_engine.playlist_engine()
-        self.skippers = 0
 
         print('Logged on as {0}!'.format(self.user))
         diktatura = self.get_guild(dikt_ID)
@@ -29,13 +27,13 @@ class Daedalus(discord.Client):
         balsas = diktatura.get_channel(bals_ID)
         self.VC = await balsas.connect()
         self.chan = balsas
-        present_members = self.chan.members
-        self.playlist_engine.connect_lads(present_members)
         print("Connected to channel {0}".format(balsas))
         await self.life_loop()
 
 
     async def on_message(self, message):
+        """Handle interaction of users with bot.
+        """
         content = message.content
         author = message.author
         text_channel = message.channel
@@ -50,41 +48,36 @@ class Daedalus(discord.Client):
                 operand += " "
 
             operation = operation[2:]
-            if type(message.channel) != discord.DMChannel:
-                await message.delete()
             if operation == "p":
                 #await text_channel.send("Trying to play {0}".format(operands))
-                print("Trying to play {0}".format(operand))
-                response = self.playlist_engine.download_song(operand, author)
-                await author.send(response)
+                response = self.playlist_engine.download_song(operand)
+                await text_channel.send(response)
             elif operation == "q":
-                response = self.playlist_engine.get_playlist_author(author)
-                await author.send(response)
-            elif operation == "d":
-                response = self.playlist_engine.delete(author, int(operand))
-                await author.send(response)
-            elif operation == "s":
-                self.skippers += 1
-                n_nariai = len(self.chan.members)-1
-                if self.skippers*2 > n_nariai: #Pakankamai balsavo
-                    await text_channel.send("Skippinam...")
-                    self.VC.stop()
-                else: #Nepakankamai balsavo
-                    response = "{0} zmoniu nori skippinti. Skippui reikia bent puse esanciu zmoniu.".format(self.skippers)
-                    await text_channel.send(response)
+                if len(operand) == 0:
+                    n = 10
+                else:
+                    n = int(operand)
+                response = self.playlist_engine.get_playlist(n)
+                await text_channel.send(response)
+            elif operation == "shuffle":
+                await text_channel.send("Shuffling..")
+                self.playlist_engine.shuffle()
+            elif operation == "skip":
+                self.VC.stop()
+            elif operation == "help":
+                helptext = open("helptext.txt","r").read()
+                await text_channel.send(helptext)
             else:
-                await text_channel.send("Nesupratau ka reiskia \"{0}\"".format(operation))
+                await text_channel.send("\"{0}\": Not implemented".format(operation))
 #        else:
 #            pass abuse
 
     async def life_loop(self):
         while True:
-            present_members = self.chan.members
-            self.playlist_engine.connect_lads(present_members)
             if not self.VC.is_playing():
                 filename = self.playlist_engine.sample()
                 print("Playing {0}".format(filename))
-                self.VC.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename), 0.5))
+                self.VC.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename), 0.25))
             await asyncio.sleep(period)
 
 

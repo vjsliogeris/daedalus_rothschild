@@ -1,0 +1,16 @@
+Commands:
+
+`#!help` for this menu.
+
+`#!p $songname$` For playing songs. The song will be added to be next in the queue.
+e.g.
+`#!p Outkast Roses`
+`#!p https://www.youtube.com/watch?v=wpV-gGA4PSk`
+
+`#!shuffle` to shuffle the playlist randomly.
+
+`#!q` For the next 10 songs in the queue + the current song.
+
+`#!q $n$` for the next $n$ songs in the queue (i.e. `#!q 20` for the next 20 songs)
+
+`#!skip` to skip.
