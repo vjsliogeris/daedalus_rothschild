@@ -23,7 +23,7 @@ class playlist_engine():
         self.songs.sort()
         random.shuffle(self.songs)
 
-      
+
     def download_song(self, query):
         """Download queried song
         """
@@ -45,17 +45,28 @@ class playlist_engine():
             name = dictMeta['title']
             audio_codec = dictMeta['acodec']
         #Check if we first already have the song
-        new_song_fname = name + "." + audio_codec
+        new_song_fname = name
+        print(new_song_fname)
         already_in = False
         for s in self.songs:
-            if s == new_song_fname:
+            s_eless = s.split(".")[:-1][0]
+            if s_eless == new_song_fname:
                 already_in = True
+        print(already_in)
         #If not - download
         if not already_in:
             if duration > MAX_DURATION:
                 print("%(title)s.%(ext)s")
                 return "The song is too long."
             ydl.download([query])
+
+        #Add it to play next
+        songlist_new = [f.path[len(self.asset_folder_name)+1:]  for f in os.scandir(self.asset_folder_name)]
+        for s in songlist_new:
+            s_eless = s.split(".")[:-1][0]
+            if s_eless == name:
+                new_song_fname = s
+                break
         self.songs = [new_song_fname] + self.songs
         return "Done."
 
@@ -71,7 +82,7 @@ class playlist_engine():
             i += 1
         return output
 
-        
+
 
     def sample(self):
         """Return next song to play
