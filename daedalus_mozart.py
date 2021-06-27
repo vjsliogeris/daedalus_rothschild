@@ -63,6 +63,9 @@ class Daedalus(discord.Client):
                 await text_channel.send("Shuffling..")
                 self.playlist_engine.shuffle()
             elif operation == "skip":
+                if not len(operand) == 0:
+                    n = int(operand)
+                    self.playlist_engine.skip(n)
                 self.VC.stop()
             elif operation == "help":
                 helptext = open("helptext.txt","r").read()
@@ -76,6 +79,7 @@ class Daedalus(discord.Client):
         while True:
             if not self.VC.is_playing():
                 filename = self.playlist_engine.sample()
+#                filename = 'assets/Born In Da Hood.mp4'
                 print("Playing {0}".format(filename))
                 self.VC.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename), 0.25))
             await asyncio.sleep(period)

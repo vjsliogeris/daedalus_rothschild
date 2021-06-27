@@ -73,6 +73,14 @@ class playlist_engine():
         self.songs = [new_song_fname] + self.songs
         return "Done."
 
+    def skip(self, n):
+        """Take out and re-place the n songs so that they end up at the back
+        """
+        songs_to_skip = self.songs[:n]
+        for song in songs_to_skip:
+            self.songs.remove(song)
+            self.songs.append(song)
+
     def shuffle(self):
         random.shuffle(self.songs)
 
