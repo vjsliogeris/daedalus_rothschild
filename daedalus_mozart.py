@@ -30,6 +30,16 @@ class Daedalus(discord.Client):
         print("Connected to channel {0}".format(balsas))
         await self.life_loop()
 
+    async def reconnect(self):
+        print('Logged on as {0}!'.format(self.user))
+        diktatura = self.get_guild(dikt_ID)
+        morpheus = diktatura.get_member(ID)
+        kanalai = await diktatura.fetch_channels()
+        balsas = diktatura.get_channel(bals_ID)
+        self.VC = await balsas.connect()
+        self.chan = balsas
+        print("Connected to channel {0}".format(balsas))
+        await self.life_loop()
 
     async def on_message(self, message):
         """Handle interaction of users with bot.
@@ -70,13 +80,19 @@ class Daedalus(discord.Client):
             elif operation == "help":
                 helptext = open("helptext.txt","r").read()
                 await text_channel.send(helptext)
+            elif operation == "force_connect":
+                await self.reconnect()
             else:
                 await text_channel.send("\"{0}\": Not implemented".format(operation))
+
 #        else:
 #            pass abuse
 
     async def life_loop(self):
         while True:
+            if not self.VC.is_connected():
+                await asyncio.sleep(period)
+                await self.reconnect()
             if not self.VC.is_playing():
                 filename = self.playlist_engine.sample()
 #                filename = 'assets/Born In Da Hood.mp4'
