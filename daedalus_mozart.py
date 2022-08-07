@@ -1,11 +1,12 @@
-import discord
-from dotenv import load_dotenv
-import os
-import time
-import subprocess
 import asyncio
+import os
+import subprocess
+import time
 
-import playlist_engine
+from dotenv import load_dotenv
+import discord
+
+from portfolio_engine import portfolio_engine
 
 #prefix gal koki "#!"
 
@@ -18,28 +19,19 @@ class Daedalus(discord.Client):
 
     async def on_ready(self):
         self.prefix = "#!"
-        self.playlist_engine = playlist_engine.playlist_engine()
-
         print('Logged on as {0}!'.format(self.user))
         diktatura = self.get_guild(dikt_ID)
         morpheus = diktatura.get_member(ID)
         kanalai = await diktatura.fetch_channels()
-        balsas = diktatura.get_channel(bals_ID)
-        self.VC = await balsas.connect()
-        self.chan = balsas
-        print("Connected to channel {0}".format(balsas))
-        await self.life_loop()
+        self.portfolios = portfolio_engine("portfolios.pickle")
+        print("on")
 
     async def reconnect(self):
         print('Logged on as {0}!'.format(self.user))
         diktatura = self.get_guild(dikt_ID)
         morpheus = diktatura.get_member(ID)
         kanalai = await diktatura.fetch_channels()
-        balsas = diktatura.get_channel(bals_ID)
-        self.VC = await balsas.connect()
-        self.chan = balsas
-        print("Connected to channel {0}".format(balsas))
-        await self.life_loop()
+        self.portfolios = portfolio_engine("portfolios.pickle")
 
     async def on_message(self, message):
         """Handle interaction of users with bot.
@@ -58,52 +50,49 @@ class Daedalus(discord.Client):
                 operand += " "
 
             operation = operation[2:]
-            if operation == "p":
-                #await text_channel.send("Trying to play {0}".format(operands))
-                response = self.playlist_engine.download_song(operand)
+            if operation == "start":
+                self.portfolios.spawn_player(author.id)
+                await text_channel.send("Player spawned")
+            elif operation == "buy":
+                ticker = operands[0]
+                quantity = int(operands[1])
+                response = self.portfolios.buy(author.id, ticker, quantity)
                 await text_channel.send(response)
-            elif operation == "q":
-                if len(operand) == 0:
-                    n = 10
-                else:
-                    n = int(operand)
-                response = self.playlist_engine.get_playlist(n)
+            elif operation == "sell":
+                ticker = operands[0]
+                quantity = int(operands[1])
+                response = self.portfolios.sell(author.id, ticker, quantity)
                 await text_channel.send(response)
-            elif operation == "shuffle":
-                await text_channel.send("Shuffling..")
-                self.playlist_engine.shuffle()
-            elif operation == "skip":
-                if not len(operand) == 0:
-                    n = int(operand)
-                    self.playlist_engine.skip(n)
-                self.VC.stop()
+            elif operation == "open_short":
+                ticker = operands[0]
+                quantity = int(operands[1])
+                response = self.portfolios.short_open(author.id, ticker, quantity)
+                await text_channel.send(response)
+            elif operation == "close_short":
+                position_id = int(operands[0])
+                response = self.portfolios.short_close(author.id, position_id)
+                await text_channel.send(response)
+            elif operation == "shorts":
+                response = self.portfolios.shorts(author.id)
+                await text_channel.send(response)
+            elif operation == "portfolio":
+                response = self.portfolios.portfolio(author.id)
+                await text_channel.send(response)
+            elif operation == "history":
+                response = self.portfolios.get_history(author.id)
+                await text_channel.send(response)
+            elif operation == "reset":
+                response = self.portfolios.reset(author.id)
+                await text_channel.send(response)
             elif operation == "help":
-                helptext = open("helptext.txt","r").read()
                 await text_channel.send(helptext)
-            elif operation == "force_connect":
-                await self.reconnect()
             else:
                 await text_channel.send("\"{0}\": Not implemented".format(operation))
-
-#        else:
-#            pass abuse
-
-    async def life_loop(self):
-        while True:
-            if not self.VC.is_connected():
-                await asyncio.sleep(period)
-                await self.reconnect()
-            if not self.VC.is_playing():
-                filename = self.playlist_engine.sample()
-#                filename = 'assets/Born In Da Hood.mp4'
-                print("Playing {0}".format(filename))
-                self.VC.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename), 0.25))
-            await asyncio.sleep(period)
-
 
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
+print(token)
 
 print("Starting bot...")
 intents = discord.Intents.all()

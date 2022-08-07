@@ -1,3 +1,5 @@
 .env
+*.swp
+env/
+*.pickle
 __pycache__/
-assets/*
